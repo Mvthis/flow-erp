@@ -1,0 +1,611 @@
+{
+    "info": {
+        "name": "FlowERP Auth API",
+        "_postman_id": "fd1c5a63-8138-4c77-a4c7-9098bf298d3b",
+        "description": "Collection Postman pour gérer l'authentification avec Laravel Sanctum, incluant les routes de base pour Register, Login, Me et Logout.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "xsrf-cookie",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "exec": [
+                    "// Vérification de la présence du cookie CSRF",
+                    "pm.sendRequest({",
+                    "    url: pm.collectionVariables.get(\"base_url\") + \"/sanctum/csrf-cookie\",",
+                    "    method: \"GET\"",
+                    "}, function (error, response, { cookies }) {",
+                    "    if (!error && cookies) {",
+                    "        let xsrfToken = cookies.get('XSRF-TOKEN');",
+                    "        if (xsrfToken) {",
+                    "            pm.collectionVariables.set('xsrf-cookie', xsrfToken);",
+                    "            console.log('XSRF-TOKEN récupéré et stocké.');",
+                    "        }",
+                    "    }",
+                    "});"
+                ]
+            }
+        }
+    ],
+    "item": [
+        {
+            "name": "Register",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf-cookie}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/register",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "register"]
+                }
+            }
+        },
+        {
+            "name": "Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf-cookie}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"password\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/login",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "login"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "// Stockage du token après login",
+                            "const jsonData = pm.response.json();",
+                            "if (jsonData.token) {",
+                            "    pm.collectionVariables.set('token', jsonData.token);",
+                            "    console.log('Token enregistré:', jsonData.token);",
+                            "}"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Me",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/me",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "me"]
+                }
+            }
+        },
+        {
+            "name": "Logout",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf-cookie}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/logout",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "logout"]
+                }
+            }
+        },
+        {
+            "name": "User Management",
+            "item": [
+                {
+                    "name": "Get All Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "users"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Single User",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/:id",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "users", ":id"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"New User\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\",\n    \"role\": \"user\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "users"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update User",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Updated User\",\n    \"email\": \"updateduser@example.com\",\n    \"role\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users/:id",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "users", ":id"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete User",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/:id",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "users", ":id"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Assign Role to User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"role\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users/:id/roles",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "users", ":id", "roles"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Product Management",
+            "item": [
+                {
+                    "name": "Get All Products",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/products",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "products"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Single Product",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/products/:id",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "products", ":id"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Product",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Product Name\",\n    \"description\": \"Description of the product\",\n    \"price\": 99.99,\n    \"quantity\": 100\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/products",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "products"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Product",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Updated Product Name\",\n    \"description\": \"Updated description\",\n    \"price\": 89.99,\n    \"quantity\": 150\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/products/:id",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "products", ":id"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Product",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/products/:id",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "products", ":id"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Invoice Management",
+            "item": [
+                {
+                    "name": "Get All Invoices",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "invoices"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Single Invoice",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices/:id",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "invoices", ":id"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Invoice",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"client_name\": \"John Doe\",\n    \"client_email\": \"john@example.com\",\n    \"products\": [\n        { \"id\": 1, \"quantity\": 2 },\n        { \"id\": 3, \"quantity\": 1 }\n    ],\n    \"include_vat\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "invoices"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Invoice",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices/:id",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "invoices", ":id"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Download Invoice PDF",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf-cookie}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/invoices/:id/pdf",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "invoices", ":id", "pdf"],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
